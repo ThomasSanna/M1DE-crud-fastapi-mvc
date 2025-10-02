@@ -11,6 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from config.app_config import app_config
 from controllers.main_controller import MainController
 from controllers.auth_controller import AuthController
+from controllers.produit_controller import ProduitController
 
 
 def create_app() -> FastAPI:
@@ -46,14 +47,15 @@ def create_app() -> FastAPI:
     # Initialisation des contrôleurs
     main_controller = MainController(templates)
     auth_controller = AuthController(templates)
+    produit_controller = ProduitController(templates)
     
     # Enregistrement des routes
-    register_routes(app, main_controller, auth_controller)
+    register_routes(app, main_controller, auth_controller, produit_controller)
     
     return app
 
 
-def register_routes(app: FastAPI, main_controller: MainController, auth_controller: AuthController):
+def register_routes(app: FastAPI, main_controller: MainController, auth_controller: AuthController, produit_controller: ProduitController):
     """
     Enregistre toutes les routes de l'application
     
@@ -107,6 +109,59 @@ def register_routes(app: FastAPI, main_controller: MainController, auth_controll
         auth_controller.register, 
         methods=["POST"],
         name="register_post"
+    )
+    
+    app.add_api_route(
+        "/produits",
+        produit_controller.list_produits,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="list_produits"
+    )
+    
+    app.add_api_route(
+        "/produits/add",
+        produit_controller.add_produit_form,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="add_produit_form"
+    )
+    
+    app.add_api_route(
+        "/produits/add",
+        produit_controller.add_produit,
+        methods=["POST"],
+        name="add_produit_post"
+    )
+    
+    app.add_api_route(
+        "/produits/{id}/delete",
+        produit_controller.delete_produit,
+        methods=["GET", "POST"],
+        name="delete_produit"
+    )
+    
+    app.add_api_route(
+        "/produits/{id}",
+        produit_controller.view_produit,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="view_produit"
+    )
+    
+    app.add_api_route(
+        "/produits/{id}/edit",
+        produit_controller.edit_produit_form,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="edit_produit_form"
+    )
+    
+    app.add_api_route(
+        "/produits/{id}/edit",
+        produit_controller.edit_produit,
+        methods=["POST"],
+        name="edit_produit_post"
     )
 
 

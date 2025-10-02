@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Détails du produit - {{ produit.designation_p }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/list_produits.css">
+<link rel="stylesheet" href="/static/css/produit_view.css">
+{% endblock %}
+
+{% block content %}
+<div class="produit-detail-container">
+    <!-- Messages flash -->
+    {% if flash_messages %}
+        {% for message in flash_messages %}
+            <div class="alert alert-{{ message.category }}" id="flash-message-{{ loop.index }}">
+                <span class="alert-message">{{ message.message | safe }}</span>
+                <button class="alert-close" onclick="closeAlert('flash-message-{{ loop.index }}')">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="produit-detail-header">
+        <h1 class="produit-detail-title">{{ produit.designation_p }}</h1>
+        <span class="produit-id-badge"># {{ produit.id_p }}</span>
+    </div>
+
+    <div class="produit-detail-card">
+        <div class="produit-info-grid">
+            <!-- Informations générales -->
+            <div class="produit-info-section">
+                <h3>🏷️ Informations générales</h3>
+                
+                <div class="produit-field">
+                    <span class="field-label">Type de produit :</span>
+                    <div class="field-value">
+                        <span class="produit-type-badge">{{ produit.type_p }}</span>
+                    </div>
+                </div>
+
+                <div class="produit-field">
+                    <span class="field-label">Désignation :</span>
+                    <div class="field-value">{{ produit.designation_p }}</div>
+                </div>
+
+                <div class="produit-field">
+                    <span class="field-label">Date d'ajout :</span>
+                    <div class="field-value date-display">
+                        {% if produit.date_in %}
+                            {{ produit.date_in.strftime('%d/%m/%Y') }}
+                            {% if produit.timeS_in %}
+                                à {{ produit.timeS_in }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">Non renseignée</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations commerciales -->
+            <div class="produit-info-section">
+                <h3>💰 Informations commerciales</h3>
+                
+                <div class="produit-field">
+                    <span class="field-label">Prix HT :</span>
+                    <div class="field-value price">{{ "%.2f"|format(produit.prix_ht) }} €</div>
+                </div>
+
+                <div class="produit-field">
+                    <span class="field-label">Prix TTC (TVA 20%) :</span>
+                    <div class="field-value">{{ "%.2f"|format(produit.prix_ht|float * 1.2) }} €</div>
+                </div>
+
+                <div class="produit-field">
+                    <span class="field-label">Stock disponible :</span>
+                    <div class="field-value stock {% if produit.stock_p > 10 %}in-stock{% elif produit.stock_p > 0 %}low-stock{% else %}out-of-stock{% endif %}">
+                        {% if produit.stock_p > 10 %}
+                            ✅ {{ produit.stock_p }} unités en stock
+                        {% elif produit.stock_p > 0 %}
+                            ⚠️ {{ produit.stock_p }} unité{{ 's' if produit.stock_p > 1 else '' }} restante{{ 's' if produit.stock_p > 1 else '' }}
+                        {% else %}
+                            ❌ Rupture de stock
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-section">
+            <a href="/produits" class="btn-back">← Retour à la liste</a>
+            
+            {% if user %}
+                <a href="/produits/{{ produit.id_p }}/edit" class="btn-edit">✏️ Modifier</a>
+                <button onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p }}')" 
+                        class="btn-delete">🗑️ Supprimer</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function closeAlert(alertId) {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    // Auto-fermeture des messages de succès après 5 secondes
+    document.addEventListener('DOMContentLoaded', function() {
+        const successAlerts = document.querySelectorAll('.alert-success');
+        successAlerts.forEach((alert) => {
+            setTimeout(() => {
+                if (alert.style.display !== 'none') {
+                    closeAlert(alert.id);
+                }
+            }, 5000);
+        });
+    });
+
+    {% if user %}
+    function confirmDelete(productId, productName) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer le produit "${productName}" ?\n\nCette action est irréversible.`)) {
+            // Redirection vers la route de suppression
+            window.location.href = `/produits/${productId}/delete`;
+        }
+    }
+    {% endif %}
+</script>
+{% endblock %}

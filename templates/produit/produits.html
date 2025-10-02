@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des produits - Mon App{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/list_produits.css">
+{% endblock %}
+
+{% block content %}
+<div class="produits-container">
+    <!-- Messages flash -->
+    {% if flash_messages %}
+        {% for message in flash_messages %}
+            <div class="alert alert-{{ message.category }}" id="flash-message-{{ loop.index }}">
+                <span class="alert-message">{{ message.message | safe }}</span>
+                <button class="alert-close" onclick="closeAlert('flash-message-{{ loop.index }}')">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="produits-header">
+        <h1 class="produits-title">Gestion des Produits</h1>
+        {% if user %}
+            <a href="/produits/add" class="btn-add">+ Ajouter un produit</a>
+        {% endif %}
+    </div>
+
+    {% if produits %}
+        <div class="product-count">
+            {{ produits|length }} produit{{ 's' if produits|length > 1 else '' }} trouvé{{ 's' if produits|length > 1 else '' }}
+        </div>
+
+        <table class="produits-table" id="produits-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th class="sortable" data-column="type">Type <span class="sort-arrow"></span></th>
+                    <th class="sortable" data-column="designation">Désignation <span class="sort-arrow"></span></th>
+                    <th class="sortable" data-column="prix">Prix HT <span class="sort-arrow"></span></th>
+                    <th class="sortable" data-column="stock">Stock <span class="sort-arrow"></span></th>
+                    <th class="sortable" data-column="date">Date d'ajout <span class="sort-arrow"></span></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produit in produits %}
+                <tr>
+                    <td>#{{ produit.id_p }}</td>
+                    <td data-sort="type">{{ produit.type_p }}</td>
+                    <td data-sort="designation">{{ produit.designation_p }}</td>
+                    <td class="price" data-sort="prix" data-value="{{ produit.prix_ht }}">{{ "%.2f"|format(produit.prix_ht) }} €</td>
+                    <td data-sort="stock" data-value="{{ produit.stock_p }}">
+                        {% if produit.stock_p > 10 %}
+                            <span class="stock in-stock">{{ produit.stock_p }} en stock</span>
+                        {% elif produit.stock_p > 0 %}
+                            <span class="stock low-stock">{{ produit.stock_p }} restant{{ 's' if produit.stock_p > 1 else '' }}</span>
+                        {% else %}
+                            <span class="stock out-of-stock">Rupture de stock</span>
+                        {% endif %}
+                    </td>
+                    <td data-sort="date" data-value="{{ produit.date_in.strftime('%Y%m%d') if produit.date_in else '00000000' }}">
+                        {% if produit.date_in %}
+                            {{ produit.date_in.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            <span class="text-muted">Non renseigné</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <a href="/produits/{{ produit.id_p }}" class="btn-action btn-view">Voir</a>
+                            {% if user %}
+                                <a href="/produits/{{ produit.id_p }}/edit" class="btn-action btn-edit">Modifier</a>
+                                <button onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p }}')" 
+                                        class="btn-action btn-delete">Supprimer</button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <h3>Aucun produit trouvé</h3>
+            <p>Il n'y a actuellement aucun produit dans la base de données.</p>
+            {% if user %}
+                <a href="/produits/add" class="btn-add">Ajouter le premier produit</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    class TableSorter {
+        constructor(tableId) {
+            this.table = document.getElementById(tableId);
+            this.tbody = this.table.querySelector('tbody');
+            this.currentSort = { column: null, direction: 'asc' };
+            this.init();
+        }
+
+        init() {
+            // Ajouter les event listeners sur les en-têtes triables
+            const sortableHeaders = this.table.querySelectorAll('.sortable');
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', (e) => this.handleSort(e));
+            });
+        }
+
+        handleSort(e) {
+            const column = e.target.closest('.sortable').dataset.column;
+            
+            // Déterminer la direction du tri
+            if (this.currentSort.column === column) {
+                // Si on clique à nouveau sur la même colonne, inverser la direction
+                this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else { 
+                // Si la colonne vient juste d'être sélectionnée, trier par ordre croissant par défaut
+                this.currentSort.direction = 'desc';
+            }
+            
+            this.currentSort.column = column;
+            this.sortTable(column, this.currentSort.direction);
+            this.updateSortIndicators(e.target.closest('.sortable'));
+        }
+
+        sortTable(column, direction) {
+            const rows = Array.from(this.tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                let aValue, bValue;
+                
+                const aTd = a.querySelector(`td[data-sort="${column}"]`);
+                const bTd = b.querySelector(`td[data-sort="${column}"]`);
+                
+                // Utiliser data-value si disponible (pour les nombres et dates)
+                if (aTd.dataset.value !== undefined) {
+                    aValue = parseFloat(aTd.dataset.value);
+                    bValue = parseFloat(bTd.dataset.value);
+                } else {
+                    // Sinon utiliser le texte
+                    aValue = aTd.textContent.trim().toLowerCase();
+                    bValue = bTd.textContent.trim().toLowerCase();
+                }
+                
+                if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Réorganiser les lignes dans le DOM
+            rows.forEach(row => this.tbody.appendChild(row));
+        }
+
+        updateSortIndicators(activeHeader) {
+            // Supprimer toutes les classes de tri existantes
+            this.table.querySelectorAll('.sortable').forEach(header => {
+                header.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            // Ajouter la classe appropriée à l'en-tête actif
+            activeHeader.classList.add(`sort-${this.currentSort.direction}`);
+        }
+    }
+
+    function closeAlert(alertId) {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    // Initialiser le tri quand la page est chargée
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('produits-table')) {
+            new TableSorter('produits-table');
+        }
+        
+        // Auto-fermeture des messages de succès après 5 secondes
+        const successAlerts = document.querySelectorAll('.alert-success');
+        successAlerts.forEach((alert, index) => {
+            setTimeout(() => {
+                if (alert.style.display !== 'none') {
+                    closeAlert(alert.id);
+                }
+            }, 5000);
+        });
+    });
+
+    {% if user %}
+    function confirmDelete(productId, productName) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer le produit "${productName}" ?`)) {
+            // Redirection vers la route de suppression
+            window.location.href = `/produits/${productId}/delete`;
+        }
+    }
+    {% endif %}
+</script>
+{% endblock %}

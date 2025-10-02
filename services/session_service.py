@@ -62,6 +62,38 @@ class SessionService:
             True si l'utilisateur est connecté, False sinon
         """
         return "user" in request.session and request.session["user"] is not None
+    
+    @staticmethod
+    def add_flash_message(request: Request, message: str, category: str = "success") -> None:
+        """
+        Ajoute un message flash à la session
+        
+        Args:
+            request: Requête FastAPI
+            message: Message à afficher
+            category: Catégorie du message (success, error, warning, info)
+        """
+        if "flash_messages" not in request.session:
+            request.session["flash_messages"] = []
+        
+        request.session["flash_messages"].append({
+            "message": html.escape(message),
+            "category": category
+        })
+    
+    @staticmethod
+    def get_flash_messages(request: Request) -> list:
+        """
+        Récupère et supprime les messages flash de la session
+        
+        Args:
+            request: Requête FastAPI
+            
+        Returns:
+            Liste des messages flash
+        """
+        messages = request.session.pop("flash_messages", [])
+        return messages
 
 
 # Instance globale du service de session

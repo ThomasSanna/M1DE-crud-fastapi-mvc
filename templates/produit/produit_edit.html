@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier le produit - {{ produit.designation_p }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/list_produits.css">
+<link rel="stylesheet" href="/static/css/produit_edit.css">
+{% endblock %}
+
+{% block content %}
+<div class="produit-edit-container">
+    <div class="produit-edit-header">
+        <h1 class="produit-edit-title">Modifier le produit</h1>
+        <p class="produit-id-info">ID: #{{ produit.id_p }}</p>
+    </div>
+
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    {% if user %}
+        <!-- Affichage des valeurs actuelles -->
+        <div class="current-values">
+            <h3>📋 Valeurs actuelles</h3>
+            <div class="current-value-item">
+                <span class="current-value-label">Type :</span>
+                <span class="current-value-data">{{ produit.type_p }}</span>
+            </div>
+            <div class="current-value-item">
+                <span class="current-value-label">Désignation :</span>
+                <span class="current-value-data">{{ produit.designation_p }}</span>
+            </div>
+            <div class="current-value-item">
+                <span class="current-value-label">Prix HT :</span>
+                <span class="current-value-data">{{ "%.2f"|format(produit.prix_ht) }} €</span>
+            </div>
+            <div class="current-value-item">
+                <span class="current-value-label">Stock :</span>
+                <span class="current-value-data">{{ produit.stock_p }} unité{{ 's' if produit.stock_p != 1 else '' }}</span>
+            </div>
+            <div class="current-value-item">
+                <span class="current-value-label">Date d'ajout :</span>
+                <span class="current-value-data">
+                    {% if produit.date_in %}
+                        {{ produit.date_in.strftime('%d/%m/%Y') }}
+                    {% else %}
+                        Non renseignée
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Formulaire de modification -->
+        <form action="/produits/{{ produit.id_p }}/edit" method="post" class="produit-form">
+            <div class="form-group">
+                <label for="type_p">Type de produit :</label>
+                <input type="text" id="type_p" name="type_p" value="{{ produit.type_p }}" required>
+                <div class="field-info">Catégorie ou type du produit</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="designation_p">Désignation :</label>
+                <input type="text" id="designation_p" name="designation_p" value="{{ produit.designation_p }}" required>
+                <div class="field-info">Nom ou description du produit</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="prix_ht">Prix HT (€) :</label>
+                <input type="number" id="prix_ht" name="prix_ht" step="0.01" min="0" value="{{ produit.prix_ht }}" required>
+                <div class="field-info">Prix hors taxes en euros</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="date_in">Date d'ajout :</label>
+                <input type="date" id="date_in" name="date_in" 
+                       value="{% if produit.date_in %}{{ produit.date_in.strftime('%Y-%m-%d') }}{% endif %}" 
+                       required>
+                <div class="field-info">Date d'ajout du produit dans l'inventaire</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="stock_p">Stock :</label>
+                <input type="number" id="stock_p" name="stock_p" min="0" value="{{ produit.stock_p }}" required>
+                <div class="field-info">Quantité disponible en stock</div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">💾 Enregistrer les modifications</button>
+                <a href="/produits/{{ produit.id_p }}" class="btn-secondary">👁️ Voir le produit</a>
+                <a href="/produits" class="btn-secondary">📋 Retour à la liste</a>
+                <button type="button" onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p }}')" 
+                        class="btn-danger">🗑️ Supprimer</button>
+            </div>
+        </form>
+    {% else %}
+        <div class="error-message">
+            Vous devez être connecté pour modifier un produit.
+            <a href="/login">Se connecter</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validation côté client
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.produit-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const prix = document.getElementById('prix_ht').value;
+                const stock = document.getElementById('stock_p').value;
+                
+                if (parseFloat(prix) < 0) {
+                    e.preventDefault();
+                    alert('Le prix ne peut pas être négatif.');
+                    return false;
+                }
+                
+                if (parseInt(stock) < 0) {
+                    e.preventDefault();
+                    alert('Le stock ne peut pas être négatif.');
+                    return false;
+                }
+            });
+        }
+
+        // Focus sur le premier champ
+        const firstInput = document.getElementById('type_p');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Confirmation des changements non sauvegardés
+        let formChanged = false;
+        const inputs = form.querySelectorAll('input');
+        const originalValues = {};
+        
+        // Enregistrer les valeurs originales
+        inputs.forEach(input => {
+            originalValues[input.name] = input.value;
+            input.addEventListener('input', () => {
+                formChanged = true;
+            });
+        });
+
+        // Avertissement si l'utilisateur quitte sans sauvegarder
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                const confirmationMessage = 'Vous avez des modifications non sauvegardées. Êtes-vous sûr de vouloir quitter ?';
+                e.returnValue = confirmationMessage;
+                return confirmationMessage;
+            }
+        });
+
+        // Ne pas déclencher l'avertissement lors de la soumission du formulaire
+        if (form) {
+            form.addEventListener('submit', function() {
+                formChanged = false;
+            });
+        }
+    });
+
+    function confirmDelete(productId, productName) {
+        const confirmation = confirm(
+            `⚠️ ATTENTION ⚠️\n\n` +
+            `Êtes-vous absolument sûr de vouloir supprimer le produit :\n` +
+            `"${productName}" (ID: #${productId}) ?\n\n` +
+            `Cette action est IRRÉVERSIBLE et supprimera définitivement toutes les données de ce produit.\n\n` +
+            `Cliquez sur "OK" pour confirmer la suppression ou "Annuler" pour revenir à l'édition.`
+        );
+        
+        if (confirmation) {
+            // Désactiver l'avertissement de changements non sauvegardés
+            window.removeEventListener('beforeunload', arguments.callee);
+            // Redirection vers la route de suppression
+            window.location.href = `/produits/${productId}/delete`;
+        }
+    }
+</script>
+{% endblock %}

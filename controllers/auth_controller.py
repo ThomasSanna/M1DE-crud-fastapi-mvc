@@ -28,7 +28,7 @@ class AuthController:
         if session_service.is_authenticated(request):
             return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
         
-        return self.templates.TemplateResponse("login.html", {"request": request})
+        return self.templates.TemplateResponse("auth/login.html", {"request": request})
     
     def login(self, request: Request, login: str = Form(...), password: str = Form(...), db=Depends(get_db)):
         """
@@ -38,7 +38,7 @@ class AuthController:
         validation_errors = validation_service.validate_login_data(login, password)
         if validation_errors:
             return self.templates.TemplateResponse(
-                "login.html", 
+                "auth/login.html", 
                 {"request": request, "error": validation_errors[0]}
             )
         
@@ -49,7 +49,7 @@ class AuthController:
             # Vérification du mot de passe
             if not user or not auth_service.verify_password(password, user.password_hash):
                 return self.templates.TemplateResponse(
-                    "login.html", 
+                    "auth/login.html", 
                     {"request": request, "error": "Login ou mot de passe incorrect"}
                 )
             
@@ -64,7 +64,7 @@ class AuthController:
         except Exception as e:
             print(f"Erreur lors de la connexion: {e}")
             return self.templates.TemplateResponse(
-                "login.html", 
+                "auth/login.html", 
                 {"request": request, "error": "Erreur de connexion"}
             )
     
@@ -81,7 +81,7 @@ class AuthController:
         if session_service.is_authenticated(request):
             return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
         
-        return self.templates.TemplateResponse("register.html", {"request": request})
+        return self.templates.TemplateResponse("auth/register.html", {"request": request})
     
     def register(self, request: Request, login: str = Form(...), email: str = Form(...), 
                 password: str = Form(...), db=Depends(get_db)):
@@ -92,7 +92,7 @@ class AuthController:
         validation_errors = validation_service.validate_registration_data(login, email, password)
         if validation_errors:
             return self.templates.TemplateResponse(
-                "register.html", 
+                "auth/register.html", 
                 {"request": request, "error": validation_errors[0]}
             )
         
@@ -101,7 +101,7 @@ class AuthController:
             existing_user = User.find_by_login_or_email(db, login.strip(), email.strip())
             if existing_user:
                 return self.templates.TemplateResponse(
-                    "register.html", 
+                    "auth/register.html", 
                     {"request": request, "error": "Ce login ou cette adresse email est déjà utilisé(e)"}
                 )
             
@@ -120,13 +120,13 @@ class AuthController:
                 return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
             else:
                 return self.templates.TemplateResponse(
-                    "register.html", 
+                    "auth/register.html", 
                     {"request": request, "error": "Erreur lors de la création du compte"}
                 )
                 
         except Exception as e:
             print(f"Erreur lors de l'inscription: {e}")
             return self.templates.TemplateResponse(
-                "register.html", 
+                "auth/register.html", 
                 {"request": request, "error": "Erreur lors de la création du compte"}
             )

@@ -141,7 +141,23 @@ class User:
     
     def save(self, connection: mysql.connector.MySQLConnection) -> bool:
         """
+        Sauvegarde l'utilisateur en base de données MySQL.
+        Cette méthode gère deux cas distincts :
+        - Si user_id est None : création d'un nouvel utilisateur avec insertion en base
+        - Si user_id existe : mise à jour des données de l'utilisateur existant
+        En cas de création réussie, l'ID généré automatiquement par la base est récupéré
+        et assigné à l'attribut user_id de l'instance.
+        La méthode utilise des transactions pour garantir la cohérence des données
+        et effectue un rollback en cas d'erreur.
+        
+        Args:
+            connection (mysql.connector.MySQLConnection): Connexion active à la base de données MySQL
+            bool: True si la sauvegarde (création ou mise à jour) a réussi, False sinon
+        Raises:
+            Les exceptions MySQL sont capturées et gérées en interne, retournant False
+            en cas d'erreur avec affichage du message d'erreur.
         Sauvegarde l'utilisateur en base de données MySQL
+        
         
         Args:
             connection: Connexion à la base de données MySQL
@@ -157,7 +173,7 @@ class User:
                 # Création d'un nouvel utilisateur
                 cursor.execute(
                     'INSERT INTO `user` (user_login, user_password, user_mail) VALUES (%s, %s, %s)',
-                    (self.login, self.password_hash, self.email)  # user_compte_id temporaire
+                    (self.login, self.password_hash, self.email)
                 )
                 
                 if cursor.rowcount > 0: # Si l'insertion a réussi (= au moins 1 ligne affectée)

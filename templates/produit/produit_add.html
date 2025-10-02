@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un produit - Mon App{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/list_produits.css">
+{% endblock %}
+
+{% block content %}
+<div class="produits-container">
+    <div class="produits-header">
+        <h1 class="produits-title">Créer un produit</h1>
+    </div>
+
+    {% if user %}
+    <form action="/produits/add" method="post" class="produit-form">
+        <div class="form-group">
+            <label for="type_p">Type de produit :</label>
+            <input type="text" id="type_p" name="type_p" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="designation_p">Désignation :</label>
+            <input type="text" id="designation_p" name="designation_p" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="prix_ht">Prix HT :</label>
+            <input type="number" id="prix_ht" name="prix_ht" step="0.01" min="0" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="date_in">Date de réception :</label>
+            <input type="date" id="date_in" name="date_in" value="{{ today.strftime('%Y-%m-%d') }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="stock_p">Stock :</label>
+            <input type="number" id="stock_p" name="stock_p" min="0" value="0" required>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Créer le produit</button>
+            <a href="/produits" class="btn-secondary">Annuler</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
