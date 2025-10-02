@@ -13,7 +13,7 @@
         {% for message in flash_messages %}
             <div class="alert alert-{{ message.category }}" id="flash-message-{{ loop.index }}">
                 <span class="alert-message">{{ message.message | safe }}</span>
-                <button class="alert-close" onclick="closeAlert('flash-message-{{ loop.index }}')">&times;</button>
+                <button class="alert-close" onclick="closeAlert('flash-message-{{ loop.index }}')">×</button>
             </div>
         {% endfor %}
     {% endif %}
@@ -46,8 +46,8 @@
                 {% for produit in produits %}
                 <tr>
                     <td>#{{ produit.id_p }}</td>
-                    <td data-sort="type">{{ produit.type_p }}</td>
-                    <td data-sort="designation">{{ produit.designation_p }}</td>
+                    <td data-sort="type">{{ produit.type_p | e }}</td>
+                    <td data-sort="designation">{{ produit.designation_p | e }}</td>
                     <td class="price" data-sort="prix" data-value="{{ produit.prix_ht }}">{{ "%.2f"|format(produit.prix_ht) }} €</td>
                     <td data-sort="stock" data-value="{{ produit.stock_p }}">
                         {% if produit.stock_p > 10 %}
@@ -70,7 +70,7 @@
                             <a href="/produits/{{ produit.id_p }}" class="btn-action btn-view">Voir</a>
                             {% if user %}
                                 <a href="/produits/{{ produit.id_p }}/edit" class="btn-action btn-edit">Modifier</a>
-                                <button onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p }}')" 
+                                <button onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p | replace("'", "\\'") | e }}')"
                                         class="btn-action btn-delete">Supprimer</button>
                             {% endif %}
                         </div>

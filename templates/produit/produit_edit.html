@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Modifier le produit - {{ produit.designation_p }}{% endblock %}
+{% block title %}Modifier le produit - {{ produit.designation_p | e }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/list_produits.css">
@@ -24,11 +24,11 @@
             <h3>📋 Valeurs actuelles</h3>
             <div class="current-value-item">
                 <span class="current-value-label">Type :</span>
-                <span class="current-value-data">{{ produit.type_p }}</span>
+                <span class="current-value-data">{{ produit.type_p | e }}</span>
             </div>
             <div class="current-value-item">
                 <span class="current-value-label">Désignation :</span>
-                <span class="current-value-data">{{ produit.designation_p }}</span>
+                <span class="current-value-data">{{ produit.designation_p | e }}</span>
             </div>
             <div class="current-value-item">
                 <span class="current-value-label">Prix HT :</span>
@@ -54,13 +54,13 @@
         <form action="/produits/{{ produit.id_p }}/edit" method="post" class="produit-form">
             <div class="form-group">
                 <label for="type_p">Type de produit :</label>
-                <input type="text" id="type_p" name="type_p" value="{{ produit.type_p }}" required>
+                <input type="text" id="type_p" name="type_p" value="{{ produit.type_p | e }}" required>
                 <div class="field-info">Catégorie ou type du produit</div>
             </div>
             
             <div class="form-group">
                 <label for="designation_p">Désignation :</label>
-                <input type="text" id="designation_p" name="designation_p" value="{{ produit.designation_p }}" required>
+                <input type="text" id="designation_p" name="designation_p" value="{{ produit.designation_p | e }}" required>
                 <div class="field-info">Nom ou description du produit</div>
             </div>
             
@@ -88,7 +88,7 @@
                 <button type="submit" class="btn-primary">💾 Enregistrer les modifications</button>
                 <a href="/produits/{{ produit.id_p }}" class="btn-secondary">👁️ Voir le produit</a>
                 <a href="/produits" class="btn-secondary">📋 Retour à la liste</a>
-                <button type="button" onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p }}')" 
+                <button type="button" onclick="confirmDelete({{ produit.id_p }}, {{ produit.designation_p | tojson }})"
                         class="btn-danger">🗑️ Supprimer</button>
             </div>
         </form>

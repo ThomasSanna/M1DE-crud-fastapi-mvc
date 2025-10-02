@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Détails du produit - {{ produit.designation_p }}{% endblock %}
+{% block title %}Détails du produit - {{ produit.designation_p | e }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="/static/css/list_produits.css">
@@ -14,13 +14,13 @@
         {% for message in flash_messages %}
             <div class="alert alert-{{ message.category }}" id="flash-message-{{ loop.index }}">
                 <span class="alert-message">{{ message.message | safe }}</span>
-                <button class="alert-close" onclick="closeAlert('flash-message-{{ loop.index }}')">&times;</button>
+                <button class="alert-close" onclick="closeAlert('flash-message-{{ loop.index }}')">×</button>
             </div>
         {% endfor %}
     {% endif %}
 
     <div class="produit-detail-header">
-        <h1 class="produit-detail-title">{{ produit.designation_p }}</h1>
+        <h1 class="produit-detail-title">{{ produit.designation_p | e }}</h1>
         <span class="produit-id-badge"># {{ produit.id_p }}</span>
     </div>
 
@@ -33,13 +33,13 @@
                 <div class="produit-field">
                     <span class="field-label">Type de produit :</span>
                     <div class="field-value">
-                        <span class="produit-type-badge">{{ produit.type_p }}</span>
+                        <span class="produit-type-badge">{{ produit.type_p | e }}</span>
                     </div>
                 </div>
 
                 <div class="produit-field">
                     <span class="field-label">Désignation :</span>
-                    <div class="field-value">{{ produit.designation_p }}</div>
+                    <div class="field-value">{{ produit.designation_p | e }}</div>
                 </div>
 
                 <div class="produit-field">
@@ -92,7 +92,7 @@
             
             {% if user %}
                 <a href="/produits/{{ produit.id_p }}/edit" class="btn-edit">✏️ Modifier</a>
-                <button onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p }}')" 
+                <button onclick="confirmDelete({{ produit.id_p }}, {{ produit.designation_p | tojson }})"
                         class="btn-delete">🗑️ Supprimer</button>
             {% endif %}
         </div>
