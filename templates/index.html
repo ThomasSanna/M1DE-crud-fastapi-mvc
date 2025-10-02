@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Mon App{% endblock %}
+
+{% block content %}
+    {% if user %}
+        <div class="welcome-container">
+            <h1>Bienvenue, {{ user.login }} !</h1>
+            <div class="welcome-message">
+                <p>Vous êtes connecté avec succès !</p>
+                <p>Votre email : {{ user.email }}</p>
+            </div>
+            <div class="user-actions">
+                <h2>Que voulez-vous faire ?</h2>
+                <ul>
+                    <li>Consulter votre profil</li>
+                    <li>Modifier vos informations</li>
+                    <li>Parcourir l'application</li>
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <div class="welcome-container">
+            <h1>Bienvenue sur notre application !</h1>
+            <div class="welcome-message">
+                <p>Pour accéder aux fonctionnalités, veuillez vous connecter ou créer un compte.</p>
+            </div>
+            <div class="features">
+                <h2>Fonctionnalités disponibles :</h2>
+                <ul>
+                    <li>Gestion sécurisée des comptes utilisateurs</li>
+                    <li>Interface intuitive et moderne</li>
+                    <li>Protection des données personnelles</li>
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

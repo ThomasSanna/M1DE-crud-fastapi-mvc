@@ -1,0 +1,60 @@
+# =====================================================
+# DÉPENDANCES DE DÉVELOPPEMENT - LOGIN PYTHON MVC
+# =====================================================
+# Installation: pip install -r requirements-dev.txt
+
+# Dépendances de base (production)
+-r requirements.txt
+
+# =====================================================
+# TESTS ET QUALITÉ DU CODE
+# =====================================================
+
+# Framework de tests
+pytest
+pytest-asyncio
+pytest-cov  # Coverage des tests
+httpx      # Client HTTP pour tester FastAPI
+
+# =====================================================
+# LINTING ET FORMATAGE
+# =====================================================
+
+# Formatage automatique du code
+black
+isort      # Organisation des imports
+
+# Analyse statique du code
+flake8     # Vérification du style
+mypy       # Vérification des types
+pylint      # Analyse approfondie du code
+
+# =====================================================
+# SÉCURITÉ
+# =====================================================
+
+# Analyse de sécurité
+bandit     # Détection de vulnérabilités
+safety     # Vérification des dépendances
+
+# =====================================================
+# DOCUMENTATION
+# =====================================================
+
+# Génération de documentation
+sphinx
+sphinx-rtd-theme
+
+# =====================================================
+# OUTILS DE DÉVELOPPEMENT
+# =====================================================
+
+# Rechargement automatique amélioré
+watchdog
+
+# Pre-commit hooks
+pre-commit
+
+# Profiling et débogage
+memory-profiler
+python-dotenv # Variables d'environnement

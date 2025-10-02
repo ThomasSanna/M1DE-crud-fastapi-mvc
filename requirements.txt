@@ -1,0 +1,21 @@
+# =====================================================
+# DÉPENDANCES POUR L'APPLICATION MVC - LOGIN PYTHON
+# =====================================================
+
+# Framework Web FastAPI
+fastapi
+uvicorn[standard]
+
+# Templates et interface utilisateur
+jinja2
+
+# Base de données PostgreSQL
+psycopg[binary]
+
+# Sécurité et authentification
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0,<5.0.0
+itsdangerous
+
+# Gestion des formulaires
+python-multipart

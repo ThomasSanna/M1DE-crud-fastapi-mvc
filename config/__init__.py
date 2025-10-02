@@ -1,0 +1,1 @@
+# Fichier vide pour faire du répertoire config un package Python

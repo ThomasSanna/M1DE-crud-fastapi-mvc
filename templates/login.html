@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - Mon App{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        <div class="form-card">
+            <h1>Connexion</h1>
+            
+            {% if error %}
+                <div class="error-message">
+                    <i class="error-icon">⚠</i>
+                    {{ error }}
+                </div>
+            {% endif %}
+            
+            <form method="post" class="auth-form">
+                <div class="form-group">
+                    <label for="login">Nom d'utilisateur</label>
+                    <input type="text" id="login" name="login" 
+                           placeholder="Entrez votre nom d'utilisateur" 
+                           required autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" 
+                           placeholder="Entrez votre mot de passe" 
+                           required autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    Se connecter
+                </button>
+            </form>
+            
+            <div class="form-footer">
+                <p>Vous n'avez pas de compte ? 
+                   <a href="/register" class="link-primary">Créez-en un</a>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
