@@ -4,8 +4,8 @@ Ce module contient la logique métier et les opérations CRUD pour les utilisate
 """
 from typing import Optional, Dict, Any
 from datetime import datetime
-import psycopg
-from psycopg.rows import dict_row
+import mysql.connector
+from mysql.connector import Error
 
 
 class User:
@@ -25,22 +25,25 @@ class User:
         self.date_login = date_login
     
     @staticmethod
-    def find_by_login(connection: psycopg.Connection, login: str) -> Optional['User']:
+    def find_by_login(connection: mysql.connector.MySQLConnection, login: str) -> Optional['User']:
         """
         Recherche un utilisateur par son login
         
         Args:
-            connection: Connexion à la base de données
+            connection: Connexion à la base de données MySQL
             login: Login de l'utilisateur
             
         Returns:
             User ou None si non trouvé
         """
+        cursor = None
         try:
-            result = connection.execute(
-                'SELECT * FROM "user" WHERE user_login = %s', 
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                'SELECT * FROM `user` WHERE user_login = %s', 
                 (login,)
-            ).fetchone()
+            )
+            result = cursor.fetchone()
             
             if result:
                 return User(
@@ -52,27 +55,33 @@ class User:
                     date_login=result.get("user_date_login")
                 )
             return None
-        except Exception as e:
-            print(f"Erreur lors de la recherche par login: {e}")
+        except Error as e:
+            print(f"Erreur MySQL lors de la recherche par login: {e}")
             return None
+        finally:
+            if cursor:
+                cursor.close()
     
     @staticmethod
-    def find_by_email(connection: psycopg.Connection, email: str) -> Optional['User']:
+    def find_by_email(connection: mysql.connector.MySQLConnection, email: str) -> Optional['User']:
         """
         Recherche un utilisateur par son email
         
         Args:
-            connection: Connexion à la base de données
+            connection: Connexion à la base de données MySQL
             email: Email de l'utilisateur
             
         Returns:
             User ou None si non trouvé
         """
+        cursor = None
         try:
-            result = connection.execute(
-                'SELECT * FROM "user" WHERE user_mail = %s', 
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                'SELECT * FROM `user` WHERE user_mail = %s', 
                 (email,)
-            ).fetchone()
+            )
+            result = cursor.fetchone()
             
             if result:
                 return User(
@@ -84,28 +93,34 @@ class User:
                     date_login=result.get("user_date_login")
                 )
             return None
-        except Exception as e:
-            print(f"Erreur lors de la recherche par email: {e}")
+        except Error as e:
+            print(f"Erreur MySQL lors de la recherche par email: {e}")
             return None
+        finally:
+            if cursor:
+                cursor.close()
     
     @staticmethod
-    def find_by_login_or_email(connection: psycopg.Connection, login: str, email: str) -> Optional['User']:
+    def find_by_login_or_email(connection: mysql.connector.MySQLConnection, login: str, email: str) -> Optional['User']:
         """
         Recherche un utilisateur par login OU email
         
         Args:
-            connection: Connexion à la base de données
+            connection: Connexion à la base de données MySQL
             login: Login de l'utilisateur
             email: Email de l'utilisateur
             
         Returns:
             User ou None si non trouvé
         """
+        cursor = None
         try:
-            result = connection.execute(
-                'SELECT * FROM "user" WHERE user_login = %s OR user_mail = %s', 
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                'SELECT * FROM `user` WHERE user_login = %s OR user_mail = %s', 
                 (login, email)
-            ).fetchone()
+            )
+            result = cursor.fetchone()
             
             if result:
                 return User(
@@ -117,68 +132,82 @@ class User:
                     date_login=result.get("user_date_login")
                 )
             return None
-        except Exception as e:
-            print(f"Erreur lors de la recherche par login/email: {e}")
+        except Error as e:
+            print(f"Erreur MySQL lors de la recherche par login/email: {e}")
             return None
+        finally:
+            if cursor:
+                cursor.close()
     
-    def save(self, connection: psycopg.Connection) -> bool:
+    def save(self, connection: mysql.connector.MySQLConnection) -> bool:
         """
-        Sauvegarde l'utilisateur en base de données
+        Sauvegarde l'utilisateur en base de données MySQL
         
         Args:
-            connection: Connexion à la base de données
+            connection: Connexion à la base de données MySQL
             
         Returns:
             True si la sauvegarde a réussi, False sinon
         """
+        cursor = None
         try:
+            cursor = connection.cursor(dictionary=True)
+            
             if self.user_id is None:
                 # Création d'un nouvel utilisateur
-                result = connection.execute(
-                    'INSERT INTO "user" (user_login, user_password, user_mail) VALUES (%s, %s, %s) RETURNING user_id, user_login, user_mail',
-                    (self.login, self.password_hash, self.email)
-                ).fetchone()
+                cursor.execute(
+                    'INSERT INTO `user` (user_login, user_password, user_mail) VALUES (%s, %s, %s)',
+                    (self.login, self.password_hash, self.email)  # user_compte_id temporaire
+                )
                 
-                if result:
-                    self.user_id = result["user_id"]
+                if cursor.rowcount > 0: # Si l'insertion a réussi (= au moins 1 ligne affectée)
+                    self.user_id = cursor.lastrowid
                     connection.commit()
                     return True
                 return False
             else:
                 # Mise à jour d'un utilisateur existant
-                connection.execute(
-                    'UPDATE "user" SET user_login = %s, user_password = %s, user_mail = %s WHERE user_id = %s',
+                cursor.execute(
+                    'UPDATE `user` SET user_login = %s, user_password = %s, user_mail = %s WHERE user_id = %s',
                     (self.login, self.password_hash, self.email, self.user_id)
                 )
                 connection.commit()
                 return True
                 
-        except Exception as e:
-            print(f"Erreur lors de la sauvegarde: {e}")
+        except Error as e:
+            print(f"Erreur MySQL lors de la sauvegarde: {e}")
             connection.rollback()
             return False
+        finally:
+            if cursor:
+                cursor.close()
     
-    def update_last_login(self, connection: psycopg.Connection) -> bool:
+    def update_last_login(self, connection: mysql.connector.MySQLConnection) -> bool:
         """
         Met à jour la date de dernière connexion
         
         Args:
-            connection: Connexion à la base de données
+            connection: Connexion à la base de données MySQL
             
         Returns:
             True si la mise à jour a réussi, False sinon
         """
+        cursor = None
         try:
-            connection.execute(
-                'UPDATE "user" SET user_date_login = %s WHERE user_id = %s',
+            cursor = connection.cursor()
+            cursor.execute(
+                'UPDATE `user` SET user_date_login = %s WHERE user_id = %s',
                 (datetime.now(), self.user_id)
             )
             connection.commit()
             return True
-        except Exception as e:
-            print(f"Erreur lors de la mise à jour de la date de connexion: {e}")
+        except Error as e:
+            print(f"Erreur MySQL lors de la mise à jour de la date de connexion: {e}")
             connection.rollback()
             return False
+        finally:
+            if cursor:
+                cursor.close()
     
     def to_dict(self) -> Dict[str, Any]:
         """
