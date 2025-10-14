@@ -11,10 +11,11 @@
     <!-- Navigation header -->
     <header class="navbar">
         <div class="nav-container">
-            <h1><a href="/">Mon App</a></h1>
+            <h1><a href="/">App MVC</a></h1>
             <nav>
                 {% if user %}
                     <span>Bienvenue, {{ user.login }}</span>
+                    <a href="/profile">Mon compte</a>
                     <a href="/logout">Se déconnecter</a>
                 {% else %}
                     <a href="/login">Se connecter</a>

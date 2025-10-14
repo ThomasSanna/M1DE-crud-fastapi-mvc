@@ -139,6 +139,44 @@ class User:
             if cursor:
                 cursor.close()
     
+    @staticmethod
+    def find_by_id(connection: mysql.connector.MySQLConnection, user_id: int) -> Optional['User']:
+        """
+        Recherche un utilisateur par son ID
+        
+        Args:
+            connection: Connexion à la base de données MySQL
+            user_id: ID de l'utilisateur
+            
+        Returns:
+            User ou None si non trouvé
+        """
+        cursor = None
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                'SELECT * FROM `user` WHERE user_id = %s', 
+                (user_id,)
+            )
+            result = cursor.fetchone()
+            
+            if result:
+                return User(
+                    user_id=result["user_id"],
+                    login=result["user_login"],
+                    email=result["user_mail"],
+                    password_hash=result["user_password"],
+                    date_new=result.get("user_date_new"),
+                    date_login=result.get("user_date_login")
+                )
+            return None
+        except Error as e:
+            print(f"Erreur MySQL lors de la recherche par ID: {e}")
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+    
     def save(self, connection: mysql.connector.MySQLConnection) -> bool:
         """
         Sauvegarde l'utilisateur en base de données MySQL.
@@ -219,6 +257,33 @@ class User:
             return True
         except Error as e:
             print(f"Erreur MySQL lors de la mise à jour de la date de connexion: {e}")
+            connection.rollback()
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+    
+    def delete(self, connection: mysql.connector.MySQLConnection) -> bool:
+        """
+        Supprime l'utilisateur de la base de données MySQL
+        
+        Args:
+            connection: Connexion à la base de données MySQL
+            
+        Returns:
+            True si la suppression a réussi, False sinon
+        """
+        cursor = None
+        try:
+            cursor = connection.cursor()
+            cursor.execute(
+                'DELETE FROM `user` WHERE user_id = %s',
+                (self.user_id,)
+            )
+            connection.commit()
+            return cursor.rowcount > 0
+        except Error as e:
+            print(f"Erreur MySQL lors de la suppression: {e}")
             connection.rollback()
             return False
         finally:

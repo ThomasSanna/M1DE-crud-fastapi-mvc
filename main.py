@@ -111,6 +111,45 @@ def register_routes(app: FastAPI, main_controller: MainController, auth_controll
         name="register_post"
     )
     
+    # Routes de gestion du profil
+    app.add_api_route(
+        "/profile",
+        auth_controller.profile,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="profile"
+    )
+    
+    app.add_api_route(
+        "/profile/edit",
+        auth_controller.edit_profile_form,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="edit_profile_form"
+    )
+    
+    app.add_api_route(
+        "/profile/edit",
+        auth_controller.edit_profile,
+        methods=["POST"],
+        name="edit_profile_post"
+    )
+    
+    app.add_api_route(
+        "/profile/delete",
+        auth_controller.delete_account_form,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="delete_account_form"
+    )
+    
+    app.add_api_route(
+        "/profile/delete",
+        auth_controller.delete_account,
+        methods=["POST"],
+        name="delete_account_post"
+    )
+    
     app.add_api_route(
         "/produits",
         produit_controller.list_produits,
@@ -174,7 +213,7 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "main:app", 
-        host="0.0.0.0", 
+        host="127.0.0.1", 
         port=8000, 
         reload=True
     )
