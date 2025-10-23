@@ -92,9 +92,7 @@ L'application sera accessible à l'adresse : http://localhost:8000
 - `/login` - Connexion
 - `/register` - Inscription
 - `/produits` - Liste des produits
-- `/produits/add` - Ajouter un produit
-- `/produits/{id}` - Voir un produit
-- `/produits/{id}/edit` - Modifier un produit
+- `/backoffice` - Backoffice (utilisateur admin requis)
 
 ## Développement
 

@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 02 oct. 2025 à 15:01
+-- Généré le : jeu. 23 oct. 2025 à 08:19
 -- Version du serveur : 10.4.32-MariaDB
--- Version de PHP : 8.1.25
+-- Version de PHP : 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -82,17 +82,20 @@ CREATE TABLE `user` (
   `user_compte_id` int(11) DEFAULT NULL,
   `user_mail` text NOT NULL,
   `user_date_new` timestamp NOT NULL DEFAULT current_timestamp(),
-  `user_date_login` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `user_date_login` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `is_admin` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Déchargement des données de la table `user`
 --
 
-INSERT INTO `user` (`user_id`, `user_login`, `user_password`, `user_compte_id`, `user_mail`, `user_date_new`, `user_date_login`) VALUES
-(1, 'mm', '$2y$10$H24g8xOaVuEjbzN6C/hRg.06nddThXBynRWRSrbapZnK21zHY7pvW', NULL, 'mm@gmail.com', '2025-09-23 18:34:28', '2025-09-23 18:34:28'),
-(3, 'testest', '$2b$12$EKBe1dEnN4ggMoKV9uVUVugDEyxMV6JjMCj6QDO0p1ay826Xq9IQy', 3, 'test@gmail.com', '2025-10-02 08:35:56', '2025-10-02 12:23:04'),
-(7, 'hjddksjdh', '$2b$12$p7tVtno65of8TbICJT4/h.qi7hKkTgvdZotBXGBaU7RrC66.QWFoe', NULL, 'shkj@dshjsdk.com', '2025-10-02 08:54:05', '2025-10-02 08:54:05');
+INSERT INTO `user` (`user_id`, `user_login`, `user_password`, `user_compte_id`, `user_mail`, `user_date_new`, `user_date_login`, `is_admin`) VALUES
+(1, 'mm', '$2y$10$H24g8xOaVuEjbzN6C/hRg.06nddThXBynRWRSrbapZnK21zHY7pvW', NULL, 'mm@gmail.com', '2025-09-23 18:34:28', '2025-09-23 18:34:28', 0),
+(3, 'testest', '$2b$12$EKBe1dEnN4ggMoKV9uVUVugDEyxMV6JjMCj6QDO0p1ay826Xq9IQy', 3, 'test@gmail.com', '2025-10-02 08:35:56', '2025-10-02 12:23:04', 0),
+(7, 'hjddksjdh', '$2b$12$p7tVtno65of8TbICJT4/h.qi7hKkTgvdZotBXGBaU7RrC66.QWFoe', NULL, 'shkj@dshjsdk.com', '2025-10-02 08:54:05', '2025-10-02 08:54:05', 0),
+(8, 'user', '$2b$12$HhSl37HL7fQ6pBNdh8SDNe8dCvpo0k90hmNQHMyzOJMQk3Qj3P3me', NULL, 'user@mail.com', '2025-10-22 21:12:03', '2025-10-23 00:52:47', 0),
+(9, 'admin', '$2b$12$XZIP.DLVF741ZuWVN0hG7ea72ChqgE0DsbP.7oTDTFWi82kldcF6W', NULL, 'admin@example.com', '2025-10-22 22:14:58', '2025-10-23 01:07:26', 1);
 
 --
 -- Index pour les tables déchargées
@@ -119,13 +122,13 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT pour la table `produit`
 --
 ALTER TABLE `produit`
-  MODIFY `id_p` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id_p` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT pour la table `user`
 --
 ALTER TABLE `user`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
