@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier le produit - Backoffice{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/backoffice.css">
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Modifier le produit</h1>
+</div>
+
+<div class="container">
+    {% if error %}
+    <div class="error-message">
+        <i class="error-icon">⚠</i>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" class="admin-form">
+        <div class="form-group">
+            <label for="type_p">Type de produit</label>
+            <input type="text" id="type_p" name="type_p" class="form-control" 
+                   value="{{ produit.type_p }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="designation_p">Désignation</label>
+            <input type="text" id="designation_p" name="designation_p" class="form-control" 
+                   value="{{ produit.designation_p }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prix_ht">Prix HT</label>
+            <input type="number" id="prix_ht" name="prix_ht" step="0.01" class="form-control" 
+                   value="{{ "%.2f"|format(produit.prix_ht) }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="stock_p">Stock</label>
+            <input type="number" id="stock_p" name="stock_p" class="form-control" 
+                   value="{{ produit.stock_p }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="date_in">Date d'entrée</label>
+            <input type="date" id="date_in" name="date_in" class="form-control" 
+                   value="{{ produit.date_in.strftime('%Y-%m-%d') }}" required>
+        </div>
+
+        <div class="form-actions">
+            <a href="/backoffice" class="btn btn-secondary">↩ Retour</a>
+            <button type="submit" class="btn btn-warning">✓ Enregistrer les modifications</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Backoffice - Administration{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/backoffice.css">
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Administration des Produits</h1>
+</div>
+
+<div class="container">
+    {% include "flash_messages.html" %}
+
+    <div class="admin-actions">
+        <a href="/backoffice/produits/add" class="btn btn-success">
+            ＋ Ajouter un produit
+        </a>
+    </div>
+
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Désignation</th>
+                <th>Prix HT</th>
+                <th>Stock</th>
+                <th>Date d'entrée</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for produit in produits %}
+            <tr>
+                <td><span class="badge">#{{ produit.id_p }}</span></td>
+                <td>{{ produit.type_p }}</td>
+                <td>{{ produit.designation_p }}</td>
+                <td>{{ "%.2f"|format(produit.prix_ht) }} €</td>
+                <td>
+                    {% if produit.stock_p > 10 %}
+                        <span class="stock-status stock-normal">{{ produit.stock_p }}</span>
+                    {% elif produit.stock_p > 0 %}
+                        <span class="stock-status stock-low">{{ produit.stock_p }}</span>
+                    {% else %}
+                        <span class="stock-status stock-out">Rupture</span>
+                    {% endif %}
+                </td>
+                <td>{{ produit.date_in.strftime('%d/%m/%Y') }}</td>
+                <td class="action-buttons">
+                    <a href="/backoffice/produits/{{ produit.id_p }}/edit" class="btn btn-warning">
+                        ✎ Modifier
+                    </a>
+                    <a href="/backoffice/produits/{{ produit.id_p }}/delete" 
+                       class="btn btn-danger"
+                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')">
+                        🗑 Supprimer
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

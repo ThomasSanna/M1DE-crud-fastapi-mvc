@@ -90,7 +90,7 @@
         <div class="actions-section">
             <a href="/produits" class="btn-back">← Retour à la liste</a>
             
-            {% if user %}
+            {% if user and user.is_admin %}
                 <a href="/produits/{{ produit.id_p }}/edit" class="btn-edit">✏️ Modifier</a>
                 <button onclick="confirmDelete({{ produit.id_p }}, {{ produit.designation_p | tojson }})"
                         class="btn-delete">🗑️ Supprimer</button>

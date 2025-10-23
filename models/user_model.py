@@ -16,13 +16,15 @@ class User:
     
     def __init__(self, user_id: Optional[int] = None, login: Optional[str] = None, 
                  email: Optional[str] = None, password_hash: Optional[str] = None,
-                 date_new: Optional[datetime] = None, date_login: Optional[datetime] = None):
+                 date_new: Optional[datetime] = None, date_login: Optional[datetime] = None,
+                 is_admin: bool = False):
         self.user_id = user_id
         self.login = login
         self.email = email
         self.password_hash = password_hash
         self.date_new = date_new
         self.date_login = date_login
+        self.is_admin = is_admin
     
     @staticmethod
     def find_by_login(connection: mysql.connector.MySQLConnection, login: str) -> Optional['User']:
@@ -52,7 +54,8 @@ class User:
                     email=result["user_mail"],
                     password_hash=result["user_password"],
                     date_new=result.get("user_date_new"),
-                    date_login=result.get("user_date_login")
+                    date_login=result.get("user_date_login"),
+                    is_admin=bool(result.get("is_admin", False))
                 )
             return None
         except Error as e:
@@ -90,7 +93,8 @@ class User:
                     email=result["user_mail"],
                     password_hash=result["user_password"],
                     date_new=result.get("user_date_new"),
-                    date_login=result.get("user_date_login")
+                    date_login=result.get("user_date_login"),
+                    is_admin=bool(result.get("is_admin", False))
                 )
             return None
         except Error as e:
@@ -129,7 +133,8 @@ class User:
                     email=result["user_mail"],
                     password_hash=result["user_password"],
                     date_new=result.get("user_date_new"),
-                    date_login=result.get("user_date_login")
+                    date_login=result.get("user_date_login"),
+                    is_admin=bool(result.get("is_admin", False))
                 )
             return None
         except Error as e:
@@ -209,9 +214,10 @@ class User:
             
             if self.user_id is None:
                 # Création d'un nouvel utilisateur
+                # Inclure le champ is_admin si présent dans le modèle
                 cursor.execute(
-                    'INSERT INTO `user` (user_login, user_password, user_mail) VALUES (%s, %s, %s)',
-                    (self.login, self.password_hash, self.email)
+                    'INSERT INTO `user` (user_login, user_password, user_mail, is_admin) VALUES (%s, %s, %s, %s)',
+                    (self.login, self.password_hash, self.email, int(bool(self.is_admin)))
                 )
                 
                 if cursor.rowcount > 0: # Si l'insertion a réussi (= au moins 1 ligne affectée)
@@ -222,8 +228,8 @@ class User:
             else:
                 # Mise à jour d'un utilisateur existant
                 cursor.execute(
-                    'UPDATE `user` SET user_login = %s, user_password = %s, user_mail = %s WHERE user_id = %s',
-                    (self.login, self.password_hash, self.email, self.user_id)
+                    'UPDATE `user` SET user_login = %s, user_password = %s, user_mail = %s, is_admin = %s WHERE user_id = %s',
+                    (self.login, self.password_hash, self.email, int(bool(self.is_admin)), self.user_id)
                 )
                 connection.commit()
                 return True
@@ -300,7 +306,8 @@ class User:
         return {
             "id": self.user_id,
             "login": self.login,
-            "email": self.email
+            "email": self.email,
+            "is_admin": bool(self.is_admin)
         }
     
     def __repr__(self) -> str:

@@ -5,7 +5,6 @@ Gère les routes liées à la connexion, déconnexion et inscription
 from fastapi import Form, Request, Depends, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-import psycopg
 
 from config.database import get_db
 from models.user_model import User
@@ -59,6 +58,12 @@ class AuthController:
             
             # Création de la session
             session_service.create_user_session(request, user)
+            # Assurer que le flag is_admin est présent en session (défensif)
+            try:
+                request.session["user"]["is_admin"] = bool(getattr(user, 'is_admin', False))
+
+            except Exception:
+                session_service.set_user_admin_flag(request, getattr(user, 'is_admin', False))
             
             return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
             
@@ -118,6 +123,12 @@ class AuthController:
             if new_user.save(db):
                 # Création de la session pour l'utilisateur nouvellement inscrit
                 session_service.create_user_session(request, new_user)
+                # Forcer la présence de is_admin
+                try:
+                    request.session["user"]["is_admin"] = bool(getattr(new_user, 'is_admin', False))
+
+                except Exception:
+                    session_service.set_user_admin_flag(request, getattr(new_user, 'is_admin', False))
                 return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
             else:
                 return self.templates.TemplateResponse(

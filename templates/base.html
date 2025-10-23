@@ -16,6 +16,9 @@
                 {% if user %}
                     <span>Bienvenue, {{ user.login }}</span>
                     <a href="/profile">Mon compte</a>
+                    {% if user.is_admin %}
+                        <a href="/backoffice">Backoffice</a>
+                    {% endif %}
                     <a href="/logout">Se déconnecter</a>
                 {% else %}
                     <a href="/login">Se connecter</a>

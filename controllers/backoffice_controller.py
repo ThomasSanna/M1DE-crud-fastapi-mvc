@@ -1,5 +1,6 @@
 """
-Contrôleur de produits
+Contrôleur du backoffice
+Gère les opérations CRUD sur les produits pour les administrateurs
 """
 from fastapi import Form, Request, Depends, status, Path
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -10,39 +11,46 @@ from config.database import get_db
 from models.produit_model import Produit
 from services.session_service import session_service
 
-class ProduitController:
-    """Contrôleur pour la gestion des produits"""
+class BackofficeController:
+    """Contrôleur pour le backoffice administrateur"""
     
     def __init__(self, templates: Jinja2Templates):
         self.templates = templates
     
-    def list_produits(self, request: Request, db=Depends(get_db)):
+    def dashboard(self, request: Request, db=Depends(get_db)):
         """
-        Affiche la liste de tous les produits
+        Affiche le tableau de bord administrateur
         """
-        produits = Produit.find_all(db)
+        # Vérifier que l'utilisateur est admin
         user = session_service.get_current_user(request)
+        if not user or not user.get('is_admin'):
+            return RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
+        produits = Produit.find_all(db)
         flash_messages = session_service.get_flash_messages(request)
         return self.templates.TemplateResponse(
-            "produit/produits.html", 
-            {"request": request, "produits": produits, "user": user, "flash_messages": flash_messages}
+            "backoffice/dashboard.html",
+            {
+                "request": request,
+                "user": user,
+                "produits": produits,
+                "flash_messages": flash_messages
+            }
         )
     
-    def add_produit_form(self, request: Request, db=Depends(get_db)):
+    def add_produit_form(self, request: Request):
         """
         Affiche le formulaire d'ajout de produit
         """
-        # Seul un utilisateur connecté et admin peut accéder au formulaire
+        # Vérifier l'accès admin
         user = session_service.get_current_user(request)
         if not user or not user.get('is_admin'):
-            return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-        
+            return RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
         today = date.today()
         return self.templates.TemplateResponse(
-            "produit/produit_add.html",
+            "backoffice/produit_add.html",
             {"request": request, "user": user, "today": today}
         )
-        
+    
     def add_produit(self, 
                     request: Request,
                     type_p: str = Form(...),
@@ -54,15 +62,19 @@ class ProduitController:
         """
         Traite le formulaire d'ajout de produit
         """
-        # Vérifier que l'utilisateur est admin
+        # Vérifier l'accès admin
         user = session_service.get_current_user(request)
         if not user or not user.get('is_admin'):
-            return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-        
+            return RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
+
         # Conversion de la date au format YYYY-MM-DD
         try:
-            day, month, year = map(int, date_in.split('/'))
-            formatted_date = date(year, month, day)
+            if '/' in date_in:
+                day, month, year = map(int, date_in.split('/'))
+                formatted_date = date(year, month, day)
+            else:
+                year, month, day = map(int, date_in.split('-'))
+                formatted_date = date(year, month, day)
         except ValueError:
             formatted_date = date.today()
         
@@ -75,17 +87,16 @@ class ProduitController:
         )
         
         if new_produit.save(db):
-            # Ajouter un message de succès
             session_service.add_flash_message(
                 request, 
                 f"Le produit '{designation_p}' a été ajouté avec succès !", 
                 "success"
             )
-            return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/backoffice", status_code=status.HTTP_303_SEE_OTHER)
         else:
             error_message = "Erreur lors de l'ajout du produit. Veuillez réessayer."
             return self.templates.TemplateResponse(
-                "produit/produit_add.html",
+                "backoffice/produit_add.html",
                 {
                     "request": request, 
                     "user": user, 
@@ -94,77 +105,14 @@ class ProduitController:
                 }
             )
     
-    def delete_produit(self, request: Request, id: int, db=Depends(get_db)):
-        """
-        Supprime un produit par son ID
-        
-        Args:
-            request: Objet Request de FastAPI
-            id: ID du produit à supprimer
-            db: Connexion à la base de données
-        """
-        # Vérifier que l'utilisateur est admin
-        user = session_service.get_current_user(request)
-        if not user or not user.get('is_admin'):
-            return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-        
-        # Récupérer le produit pour avoir son nom avant suppression
-        produit = Produit.find_by_id(db, id)
-        
-        if not produit:
-            session_service.add_flash_message(
-                request, 
-                "Le produit à supprimer n'existe pas.", 
-                "error"
-            )
-            return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
-        
-        # Supprimer le produit
-        if Produit.delete_by_id(db, id):
-            session_service.add_flash_message(
-                request, 
-                f"Le produit '{produit.designation_p}' a été supprimé avec succès !", 
-                "success"
-            )
-        else:
-            session_service.add_flash_message(
-                request, 
-                "Erreur lors de la suppression du produit.", 
-                "error"
-            )
-        
-        return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
-    
-    def view_produit(self, request: Request, id: int, db=Depends(get_db)):
-        """
-        Affiche les détails d'un produit par son ID
-        """
-        produit = Produit.find_by_id(db, id)
-        user = session_service.get_current_user(request)
-        flash_messages = session_service.get_flash_messages(request)
-        
-        if not produit:
-            session_service.add_flash_message(
-                request, 
-                "Le produit demandé n'existe pas.", 
-                "error"
-            )
-            return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
-        
-        return self.templates.TemplateResponse(
-            "produit/produit_view.html",
-            {"request": request, "produit": produit, "user": user, "flash_messages": flash_messages}
-        )
-
     def edit_produit_form(self, request: Request, id: int, db=Depends(get_db)):
         """
         Affiche le formulaire d'édition d'un produit
         """
-        # Vérifier que l'utilisateur est admin
+        # Vérifier l'accès admin
         user = session_service.get_current_user(request)
         if not user or not user.get('is_admin'):
-            return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-        
+            return RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
         produit = Produit.find_by_id(db, id)
         if not produit:
             session_service.add_flash_message(
@@ -172,10 +120,10 @@ class ProduitController:
                 "Le produit à éditer n'existe pas.", 
                 "error"
             )
-            return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/backoffice", status_code=status.HTTP_303_SEE_OTHER)
         
         return self.templates.TemplateResponse(
-            "produit/produit_edit.html",
+            "backoffice/produit_edit.html",
             {"request": request, "produit": produit, "user": user}
         )
     
@@ -191,12 +139,11 @@ class ProduitController:
         """
         Traite le formulaire de modification de produit
         """
-        # Vérifier que l'utilisateur est admin
+        # Vérifier l'accès admin
         user = session_service.get_current_user(request)
         if not user or not user.get('is_admin'):
-            return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
         
-        # Vérifier que le produit existe
         produit = Produit.find_by_id(db, id)
         if not produit:
             session_service.add_flash_message(
@@ -204,15 +151,14 @@ class ProduitController:
                 "Le produit à modifier n'existe pas.", 
                 "error"
             )
-            return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/backoffice", status_code=status.HTTP_303_SEE_OTHER)
         
-        # Conversion de la date au format approprié
+        # Conversion de la date
         try:
             if '/' in date_in:
                 day, month, year = map(int, date_in.split('/'))
                 formatted_date = date(year, month, day)
             else:
-                # Format YYYY-MM-DD (de l'input date HTML)
                 year, month, day = map(int, date_in.split('-'))
                 formatted_date = date(year, month, day)
         except ValueError:
@@ -225,18 +171,17 @@ class ProduitController:
         produit.date_in = formatted_date
         produit.stock_p = stock_p
         
-        # Sauvegarder les modifications
         if produit.save(db):
             session_service.add_flash_message(
                 request, 
                 f"Le produit '{designation_p}' a été modifié avec succès !", 
                 "success"
             )
-            return RedirectResponse(url=f"/produits/{id}", status_code=status.HTTP_303_SEE_OTHER)
+            return RedirectResponse(url="/backoffice", status_code=status.HTTP_303_SEE_OTHER)
         else:
             error_message = "Erreur lors de la modification du produit. Veuillez réessayer."
             return self.templates.TemplateResponse(
-                "produit/produit_edit.html",
+                "backoffice/produit_edit.html",
                 {
                     "request": request, 
                     "produit": produit, 
@@ -244,3 +189,36 @@ class ProduitController:
                     "error": error_message
                 }
             )
+    
+    def delete_produit(self, request: Request, id: int, db=Depends(get_db)):
+        """
+        Supprime un produit
+        """
+        # Vérifier l'accès admin
+        user = session_service.get_current_user(request)
+        if not user or not user.get('is_admin'):
+            return RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
+
+        produit = Produit.find_by_id(db, id)
+        if not produit:
+            session_service.add_flash_message(
+                request, 
+                "Le produit à supprimer n'existe pas.", 
+                "error"
+            )
+            return RedirectResponse(url="/backoffice", status_code=status.HTTP_303_SEE_OTHER)
+        
+        if Produit.delete_by_id(db, id):
+            session_service.add_flash_message(
+                request, 
+                f"Le produit '{produit.designation_p}' a été supprimé avec succès !", 
+                "success"
+            )
+        else:
+            session_service.add_flash_message(
+                request, 
+                "Erreur lors de la suppression du produit.", 
+                "error"
+            )
+        
+        return RedirectResponse(url="/backoffice", status_code=status.HTTP_303_SEE_OTHER)

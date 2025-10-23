@@ -19,10 +19,7 @@
     {% endif %}
 
     <div class="produits-header">
-        <h1 class="produits-title">Gestion des Produits</h1>
-        {% if user %}
-            <a href="/produits/add" class="btn-add">+ Ajouter un produit</a>
-        {% endif %}
+        <h1 class="produits-title">Liste des Produits</h1>
     </div>
 
     {% if produits %}
@@ -68,11 +65,6 @@
                     <td>
                         <div class="actions">
                             <a href="/produits/{{ produit.id_p }}" class="btn-action btn-view">Voir</a>
-                            {% if user %}
-                                <a href="/produits/{{ produit.id_p }}/edit" class="btn-action btn-edit">Modifier</a>
-                                <button onclick="confirmDelete({{ produit.id_p }}, '{{ produit.designation_p | replace("'", "\\'") | e }}')"
-                                        class="btn-action btn-delete">Supprimer</button>
-                            {% endif %}
                         </div>
                     </td>
                 </tr>

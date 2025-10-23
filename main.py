@@ -12,6 +12,8 @@ from config.app_config import app_config
 from controllers.main_controller import MainController
 from controllers.auth_controller import AuthController
 from controllers.produit_controller import ProduitController
+from controllers.backoffice_controller import BackofficeController
+
 
 
 def create_app() -> FastAPI:
@@ -34,6 +36,8 @@ def create_app() -> FastAPI:
         secret_key=app_config.SECRET_KEY
     )
     
+    # Pas de middleware global: vérifications d'accès admin effectuées dans les contrôleurs
+    
     # Configuration des fichiers statiques
     app.mount(
         app_config.STATIC_URL, 
@@ -48,14 +52,17 @@ def create_app() -> FastAPI:
     main_controller = MainController(templates)
     auth_controller = AuthController(templates)
     produit_controller = ProduitController(templates)
+    backoffice_controller = BackofficeController(templates)
+    
     
     # Enregistrement des routes
-    register_routes(app, main_controller, auth_controller, produit_controller)
+    register_routes(app, main_controller, auth_controller, produit_controller, backoffice_controller)
     
     return app
 
 
-def register_routes(app: FastAPI, main_controller: MainController, auth_controller: AuthController, produit_controller: ProduitController):
+def register_routes(app: FastAPI, main_controller: MainController, auth_controller: AuthController, 
+                  produit_controller: ProduitController, backoffice_controller: BackofficeController):
     """
     Enregistre toutes les routes de l'application
     
@@ -201,6 +208,52 @@ def register_routes(app: FastAPI, main_controller: MainController, auth_controll
         produit_controller.edit_produit,
         methods=["POST"],
         name="edit_produit_post"
+    )
+    
+    # Routes du backoffice
+    app.add_api_route(
+        "/backoffice",
+        backoffice_controller.dashboard,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="backoffice_dashboard"
+    )
+    
+    app.add_api_route(
+        "/backoffice/produits/add",
+        backoffice_controller.add_produit_form,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="backoffice_add_produit_form"
+    )
+    
+    app.add_api_route(
+        "/backoffice/produits/add",
+        backoffice_controller.add_produit,
+        methods=["POST"],
+        name="backoffice_add_produit_post"
+    )
+    
+    app.add_api_route(
+        "/backoffice/produits/{id}/edit",
+        backoffice_controller.edit_produit_form,
+        methods=["GET"],
+        response_class=HTMLResponse,
+        name="backoffice_edit_produit_form"
+    )
+    
+    app.add_api_route(
+        "/backoffice/produits/{id}/edit",
+        backoffice_controller.edit_produit,
+        methods=["POST"],
+        name="backoffice_edit_produit_post"
+    )
+    
+    app.add_api_route(
+        "/backoffice/produits/{id}/delete",
+        backoffice_controller.delete_produit,
+        methods=["GET"],
+        name="backoffice_delete_produit"
     )
 
 

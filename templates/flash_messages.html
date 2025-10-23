@@ -1,0 +1,7 @@
+{% if flash_messages %}
+    {% for message in flash_messages %}
+        <div class="alert alert-{{ message.category }}">
+            {{ message.message | safe }}
+        </div>
+    {% endfor %}
+{% endif %}
