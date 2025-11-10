@@ -51,7 +51,7 @@
         </div>
 
         <!-- Formulaire de modification -->
-        <form action="/produits/{{ produit.id_p }}/edit" method="post" class="produit-form">
+        <form action="/produits/{{ produit.id_p }}/edit" method="post" class="produit-form" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="type_p">Type de produit :</label>
                 <input type="text" id="type_p" name="type_p" value="{{ produit.type_p | e }}" required>
@@ -82,6 +82,23 @@
                 <label for="stock_p">Stock :</label>
                 <input type="number" id="stock_p" name="stock_p" min="0" value="{{ produit.stock_p }}" required>
                 <div class="field-info">Quantité disponible en stock</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="image">Image du produit :</label>
+                <input type="file" id="image" name="image" accept="image/*">
+                <div class="field-info">Image du produit (JPG, PNG ou GIF)</div>
+                {% if produit.image_p %}
+                    <div class="current-image">
+                        <img src="/static/images/produits/{{ produit.image_p }}" alt="Image actuelle" style="max-width: 200px; margin-top: 10px;">
+                        <div>
+                            <label>
+                                <input type="checkbox" name="delete_image">
+                                Supprimer l'image actuelle
+                            </label>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
             
             <div class="form-actions">

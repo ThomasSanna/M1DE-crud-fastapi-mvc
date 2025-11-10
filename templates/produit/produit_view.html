@@ -25,6 +25,11 @@
     </div>
 
     <div class="produit-detail-card">
+        {% if produit.image_p %}
+        <div class="produit-image">
+            <img src="/static/images/produits/{{ produit.image_p }}" alt="{{ produit.designation_p }}" style="max-width: 300px; max-height: 300px; object-fit: contain;">
+        </div>
+        {% endif %}
         <div class="produit-info-grid">
             <!-- Informations générales -->
             <div class="produit-info-section">

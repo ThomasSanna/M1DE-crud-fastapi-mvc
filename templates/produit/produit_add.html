@@ -13,7 +13,7 @@
     </div>
 
     {% if user %}
-    <form action="/produits/add" method="post" class="produit-form">
+    <form action="/produits/add" method="post" class="produit-form" enctype="multipart/form-data">
         <div class="form-group">
             <label for="type_p">Type de produit :</label>
             <input type="text" id="type_p" name="type_p" required>
@@ -37,6 +37,12 @@
         <div class="form-group">
             <label for="stock_p">Stock :</label>
             <input type="number" id="stock_p" name="stock_p" min="0" value="0" required>
+        </div>
+
+        <div class="form-group">
+            <label for="image">Image du produit :</label>
+            <input type="file" id="image" name="image" accept="image/*">
+            <div class="field-info">Image du produit (JPG, PNG ou GIF)</div>
         </div>
         
         <div class="form-actions">

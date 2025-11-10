@@ -11,7 +11,7 @@ class Produit:
     
     def __init__(self, id_p: Optional[int] = None, type_p: str = "", designation_p: str = "", 
                  prix_ht: float = 0.0, date_in: Optional[datetime] = None, 
-                 timeS_in: Optional[str] = None, stock_p: int = 0):
+                 timeS_in: Optional[str] = None, stock_p: int = 0, image_p: Optional[str] = None):
         self.id_p = id_p
         self.type_p = type_p
         self.designation_p = designation_p
@@ -19,6 +19,7 @@ class Produit:
         self.date_in = date_in
         self.timeS_in = timeS_in
         self.stock_p = stock_p
+        self.image_p = image_p
         
     @staticmethod
     def find_by_id(connection: mysql.connector.MySQLConnection, id: int) -> Optional['Produit']:
@@ -85,7 +86,8 @@ class Produit:
                     prix_ht=result["prix_ht"],
                     date_in=result.get("date_in"),
                     timeS_in=result.get("timeS_in"),
-                    stock_p=result["stock_p"]
+                    stock_p=result["stock_p"],
+                    image_p=result.get("image_p")
                 ))
             return produits
         except Error as e:
@@ -125,7 +127,8 @@ class Produit:
                     prix_ht=result["prix_ht"],
                     date_in=result.get("date_in"),
                     timeS_in=result.get("timeS_in"),
-                    stock_p=result["stock_p"]
+                    stock_p=result["stock_p"],
+                    image_p=result.get("image_p")
                 ))
             return produits
         except Error as e:
@@ -152,8 +155,8 @@ class Produit:
             if self.id_p is None:
                 # Créer un nouveau produit
                 cursor.execute(
-                    'INSERT INTO `produit` (type_p, designation_p, prix_ht, date_in, stock_p) VALUES (%s, %s, %s, %s, %s)',
-                    (self.type_p, self.designation_p, self.prix_ht, self.date_in, self.stock_p)
+                    'INSERT INTO `produit` (type_p, designation_p, prix_ht, date_in, stock_p, image_p) VALUES (%s, %s, %s, %s, %s, %s)',
+                    (self.type_p, self.designation_p, self.prix_ht, self.date_in, self.stock_p, self.image_p)
                 )
                 
                 if cursor.rowcount > 0:
@@ -164,8 +167,8 @@ class Produit:
             else:
                 # Mettre à jour un produit existant
                 cursor.execute(
-                    'UPDATE `produit` SET type_p = %s, designation_p = %s, prix_ht = %s, date_in = %s, stock_p = %s WHERE id_p = %s',
-                    (self.type_p, self.designation_p, self.prix_ht, self.date_in, self.stock_p, self.id_p)
+                    'UPDATE `produit` SET type_p = %s, designation_p = %s, prix_ht = %s, date_in = %s, stock_p = %s, image_p = %s WHERE id_p = %s', 
+                    (self.type_p, self.designation_p, self.prix_ht, self.date_in, self.stock_p, self.image_p, self.id_p)
                 )
                 connection.commit()
                 return True
@@ -221,9 +224,10 @@ class Produit:
             "prix_ht": self.prix_ht,
             "date_in": self.date_in,
             "timeS_in": self.timeS_in,
-            "stock_p": self.stock_p
+            "stock_p": self.stock_p,
+            "image_p": self.image_p
         }
         
     def __repr__(self) -> str:
         """Représentation string du produit"""
-        return f"Produit(id={self.id_p}, type='{self.type_p}', designation='{self.designation_p}', prix_ht={self.prix_ht}, stock={self.stock_p})"
+        return f"Produit(id={self.id_p}, type='{self.type_p}', designation='{self.designation_p}', prix_ht={self.prix_ht}, stock={self.stock_p}, image_p='{self.image_p}')"

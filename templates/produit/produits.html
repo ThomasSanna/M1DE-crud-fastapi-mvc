@@ -31,6 +31,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Image</th>
                     <th class="sortable" data-column="type">Type <span class="sort-arrow"></span></th>
                     <th class="sortable" data-column="designation">Désignation <span class="sort-arrow"></span></th>
                     <th class="sortable" data-column="prix">Prix HT <span class="sort-arrow"></span></th>
@@ -43,6 +44,11 @@
                 {% for produit in produits %}
                 <tr>
                     <td>#{{ produit.id_p }}</td>
+                    <td>
+                        {% if produit.image_p %}
+                        <img src="/static/images/produits/{{ produit.image_p }}" alt="{{ produit.designation_p }}" style="max-width: 50px; max-height: 50px; object-fit: contain;">
+                        {% endif %}
+                    </td>
                     <td data-sort="type">{{ produit.type_p | e }}</td>
                     <td data-sort="designation">{{ produit.designation_p | e }}</td>
                     <td class="price" data-sort="prix" data-value="{{ produit.prix_ht }}">{{ "%.2f"|format(produit.prix_ht) }} €</td>

@@ -1,14 +1,16 @@
 """
 Contrôleur de produits
 """
-from fastapi import Form, Request, Depends, status, Path
+from fastapi import Form, Request, Depends, status, Path, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from datetime import date
+from typing import Optional
 
 from config.database import get_db
 from models.produit_model import Produit
 from services.session_service import session_service
+from services.image_service import image_service
 
 class ProduitController:
     """Contrôleur pour la gestion des produits"""
@@ -43,13 +45,14 @@ class ProduitController:
             {"request": request, "user": user, "today": today}
         )
         
-    def add_produit(self, 
+    async def add_produit(self, 
                     request: Request,
                     type_p: str = Form(...),
                     designation_p: str = Form(...),
                     prix_ht: float = Form(...),
                     date_in: str = Form(...),
                     stock_p: int = Form(...),
+                    image: Optional[UploadFile] = File(None),
                     db=Depends(get_db)):
         """
         Traite le formulaire d'ajout de produit
@@ -66,12 +69,18 @@ class ProduitController:
         except ValueError:
             formatted_date = date.today()
         
+        # Gérer l'upload d'image
+        image_filename = None
+        if image:
+            image_filename = await image_service.save_product_image(image)
+        
         new_produit = Produit(
             type_p=type_p,
             designation_p=designation_p,
             prix_ht=prix_ht,
             date_in=formatted_date,
-            stock_p=stock_p
+            stock_p=stock_p,
+            image_p=image_filename
         )
         
         if new_produit.save(db):
@@ -96,7 +105,7 @@ class ProduitController:
     
     def delete_produit(self, request: Request, id: int, db=Depends(get_db)):
         """
-        Supprime un produit par son ID
+        Supprime un produit et son image par son ID
         
         Args:
             request: Objet Request de FastAPI
@@ -118,6 +127,10 @@ class ProduitController:
                 "error"
             )
             return RedirectResponse(url="/produits", status_code=status.HTTP_303_SEE_OTHER)
+        
+        # Supprimer l'image si elle existe
+        if produit.image_p:
+            image_service.delete_product_image(produit.image_p)
         
         # Supprimer le produit
         if Produit.delete_by_id(db, id):
@@ -179,7 +192,7 @@ class ProduitController:
             {"request": request, "produit": produit, "user": user}
         )
     
-    def edit_produit(self, 
+    async def edit_produit(self, 
                      request: Request,
                      id: int,
                      type_p: str = Form(...),
@@ -187,6 +200,8 @@ class ProduitController:
                      prix_ht: float = Form(...),
                      date_in: str = Form(...),
                      stock_p: int = Form(...),
+                     image: Optional[UploadFile] = File(None),
+                     delete_image: bool = Form(False),
                      db=Depends(get_db)):
         """
         Traite le formulaire de modification de produit
@@ -218,12 +233,28 @@ class ProduitController:
         except ValueError:
             formatted_date = produit.date_in or date.today()
         
+        # Gérer l'image
+        old_image = produit.image_p
+        new_image = None
+        
+        # Supprimer l'ancienne image si demandé
+        if delete_image and old_image:
+            image_service.delete_product_image(old_image)
+            old_image = None
+        # Gérer le nouvel upload
+        elif image:
+            # Supprimer l'ancienne image si elle existe
+            if old_image:
+                image_service.delete_product_image(old_image)
+            new_image = await image_service.save_product_image(image)
+        
         # Mettre à jour les propriétés du produit
         produit.type_p = type_p
         produit.designation_p = designation_p
         produit.prix_ht = prix_ht
         produit.date_in = formatted_date
         produit.stock_p = stock_p
+        produit.image_p = new_image if new_image is not None else (None if delete_image else old_image)
         
         # Sauvegarder les modifications
         if produit.save(db):
