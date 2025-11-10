@@ -34,7 +34,8 @@ CREATE TABLE `produit` (
   `prix_ht` decimal(10,2) NOT NULL,
   `date_in` date NOT NULL,
   `timeS_in` timestamp NOT NULL DEFAULT current_timestamp(),
-  `stock_p` int(11) DEFAULT 0
+  `stock_p` int(11) DEFAULT 0,
+  `image_p` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
